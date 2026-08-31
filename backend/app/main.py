@@ -58,24 +58,46 @@ from app.database import db_cursor
 @app.get("/api/leases/ar-summary")
 def get_lease_ar_summary():
     with db_cursor() as cursor:
-        # Let's test grabbing just one row with a wildcard
-        cursor.execute("SELECT * FROM tbllease LIMIT 1")
-        row = cursor.fetchone()
-        print("DEBUG LEASE ROW:", row)  # This will print to your backend terminal!
-        
-        cursor.execute("SELECT `Lease#` as LeaseNumber, LeaseID, CustomerID, Customer, AmountDue, LastPayDate FROM tbllease WHERE LeaseID BETWEEN 'A' and 'V' ORDER BY AmountDue DESC LIMIT 10")
+        # Collate all of a customer's leases into a single row: sum their
+        # balances and collateral values together and combine their lease
+        # numbers into one list, instead of showing one row per lease.
+        cursor.execute(
+            """
+            SELECT
+                l.CustomerID,
+                l.Customer,
+                GROUP_CONCAT(DISTINCT l.`Lease#` ORDER BY l.`Lease#` SEPARATOR ', ') AS LeaseNumbers,
+                SUM(l.AmountDue) AS Balance,
+                MAX(l.LastPayDate) AS LastPayDate,
+                SUM(cv.CollatV) AS TotalCollatV
+            FROM tbllease l
+            LEFT JOIN (
+                -- Pre-aggregate per lease first, so a lease with more than
+                -- one tblcollatv row can't fan out the join and inflate
+                -- the AmountDue sum above.
+                SELECT LeaseID, SUM(CollatV) AS CollatV
+                FROM tblcollatv
+                GROUP BY LeaseID
+            ) cv ON cv.LeaseID = l.LeaseID
+            WHERE l.LeaseID BETWEEN 'A' AND 'V'
+            GROUP BY l.CustomerID, l.Customer
+            ORDER BY Balance DESC
+            LIMIT 10
+            """
+        )
         rows = cursor.fetchall()
-        
+
     result = [
         {
-            "LeaseNumber": row.get("LeaseNumber"),
+            "LeaseNumber": row.get("LeaseNumbers"),
             "Customer ID": row.get("CustomerID"),
             "Customer": row.get("Customer"),
-            "Balance": row.get("AmountDue"),
+            "Balance": row.get("Balance"),
             "Last Pay Date": str(row.get("LastPayDate")) if row.get("LastPayDate") else None,
             "Last Pay Amt": None,
+            "CollatV": row.get("TotalCollatV"),
             "SyncRunAt": "Live"
-        } 
+        }
         for row in rows
     ]
     return {"customers": result}

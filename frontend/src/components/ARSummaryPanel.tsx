@@ -25,18 +25,22 @@ export default function ARSummaryPanel() {
       <table className="mt-4 w-full text-sm">
   <thead>
     <tr className="text-left text-xs uppercase tracking-wide text-slate border-b border-slate/10">
-      <th className="pb-2 font-medium">Lease #</th> {/* Added header */}
+      <th className="pb-2 font-medium">Lease #(s)</th> {/* Collated per customer */}
       <th className="pb-2 font-medium">Customer</th>
       <th className="pb-2 font-medium text-right">Balance</th>
+      <th className="pb-2 font-medium text-right">Collat V</th>
       <th className="pb-2 font-medium text-right">Last payment</th>
     </tr>
   </thead>
   <tbody className="divide-y divide-slate/10">
     {customers.slice(0, 10).map((c) => (
       <tr key={c['Customer ID']}>
-        <td className="py-2 font-mono text-xs">{c.LeaseNumber}</td> {/* Added data cell */}
+        <td className="py-2 font-mono text-xs">{c.LeaseNumber || '—'}</td> {/* Comma-separated list of this customer's leases */}
         <td className="py-2">{c.Customer}</td>
         <td className="py-2 text-right font-mono">${Number(c.Balance).toFixed(2)}</td>
+        <td className="py-2 text-right font-mono">
+          {c.CollatV != null ? `$${Number(c.CollatV).toFixed(2)}` : '—'}
+        </td>
         <td className="py-2 text-right text-slate">
           {c['Last Pay Date'] ? new Date(c['Last Pay Date']).toLocaleDateString() : '—'}
         </td>

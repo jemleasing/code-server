@@ -39,6 +39,7 @@ export interface ARCustomer {
   Balance: number;
   'Last Pay Date': string | null;
   'Last Pay Amt': number | null;
+  CollatV: number | null;
   SyncRunAt: string;
 }
 
