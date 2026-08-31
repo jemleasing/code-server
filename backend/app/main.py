@@ -1,22 +1,27 @@
 import os
-
 from dotenv import load_dotenv
+load_dotenv()  # Load environment variables first
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# 1. Initialize the app FIRST
+app = FastAPI(title="JEM Leasing ERP API", version="0.1.0")
+
+# 2. Add CORS middleware to the app instance
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or restrict to your specific Vercel URL
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# 3. Import and include your routers after app is initialized
 from app.routers import customers, sage_sync
 
-load_dotenv()
-
-app = FastAPI(title="JEM Leasing ERP API", version="0.1.0")
+app.include_router(customers.router)
+app.include_router(sage_sync.router)
 
 origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
@@ -35,7 +40,7 @@ app.include_router(customers.router)
 def read_root():
     return {"status": "online", "message": "Livery ERP API is running"}
 
-@app.get("/api/health")
+@app.get("/api/health/")
 def health_check():
     """Quick check that the API is up and can reach MySQL."""
     from app.database import db_cursor
@@ -50,7 +55,7 @@ def health_check():
 
 from app.database import db_cursor
 
-@app.get("/api/leases/ar-summary")
+@app.get("/api/leases/ar-summary/")
 def get_lease_ar_summary():
     with db_cursor() as cursor:
         # Let's test grabbing just one row with a wildcard
