@@ -58,10 +58,20 @@ export interface Customer {
   TLC_DiamondNum: string | null;
 }
 
+export interface ActiveAccount {
+  LeaseID: string;
+  LeaseNumber: string;
+  'Customer ID': string;
+  Customer: string;
+  Balance: number;
+  CollatV: number | null;
+}
+
 export const api = {
   health: () => apiGet<{ api: string; database: string }>('/api/health'),
   customers: (search: string) =>
     apiGet<{ customers: Customer[] }>(`/api/customers?search=${encodeURIComponent(search)}`),
   arSummary: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/ar-summary'),
   accountReport: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/account-report'),
+  activeCollatV: () => apiGet<{ accounts: ActiveAccount[] }>('/api/leases/active-collatv'),
 }

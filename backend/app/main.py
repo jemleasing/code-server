@@ -125,3 +125,48 @@ def get_account_report():
     letter A through V (no limit), for the account report page.
     """
     return {"customers": _fetch_account_summary(limit=None)}
+
+
+@app.get("/api/leases/active-collatv")
+def get_active_collatv():
+    """
+    One row per active account (Active = 1): account/lease number,
+    customer, balance, and CollatV. Unlike the account report above,
+    this is NOT collated per customer - each active lease gets its own
+    row, so a customer with two active leases shows up twice.
+    """
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                l.LeaseID,
+                l.`Lease#` AS LeaseNumber,
+                l.CustomerID,
+                l.Customer,
+                l.AmountDue AS Balance,
+                cv.CollatV
+            FROM tbllease l
+            LEFT JOIN (
+                SELECT LeaseID, SUM(CollatV) AS CollatV
+                FROM tblcollatv
+                GROUP BY LeaseID
+            ) cv ON cv.LeaseID = l.LeaseID
+            WHERE l.Active = 1
+            ORDER BY l.`Lease#`
+            """
+        )
+        rows = cursor.fetchall()
+
+    return {
+        "accounts": [
+            {
+                "LeaseID": row.get("LeaseID"),
+                "LeaseNumber": row.get("LeaseNumber"),
+                "Customer ID": row.get("CustomerID"),
+                "Customer": row.get("Customer"),
+                "Balance": row.get("Balance"),
+                "CollatV": row.get("CollatV"),
+            }
+            for row in rows
+        ]
+    }

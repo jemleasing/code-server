@@ -1,6 +1,7 @@
 import ARSummaryPanel from './components/ARSummaryPanel'
 import CustomerSearchPanel from './components/CustomerSearchPanel'
 import AccountReportPanel from './components/AccountReportPanel'
+import ActiveCollatVPanel from './components/ActiveCollatVPanel'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <ARSummaryPanel />
           <CustomerSearchPanel />
           <AccountReportPanel />
+          <ActiveCollatVPanel />
         </div>
       </main>
     </div>
