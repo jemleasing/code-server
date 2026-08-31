@@ -1,6 +1,31 @@
 import { useEffect, useState } from 'react'
 import { api, ARCustomer } from '../api'
 
+function downloadCsv(customers: ARCustomer[]) {
+  const headers = ['Customer ID', 'Customer', 'Lease #(s)', 'Balance', 'Collat V', 'Last Pay Date']
+  const escape = (val: unknown) => {
+    const s = val == null ? '' : String(val)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const rows = customers.map((c) => [
+    c['Customer ID'],
+    c.Customer,
+    c.LeaseNumber || '',
+    Number(c.Balance).toFixed(2),
+    c.CollatV != null ? Number(c.CollatV).toFixed(2) : '',
+    c['Last Pay Date'] ? new Date(c['Last Pay Date']).toLocaleDateString() : '',
+  ])
+  const csv = [headers, ...rows].map((row) => row.map(escape).join(',')).join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `account-report-a-v-${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export default function AccountReportPanel() {
   const [customers, setCustomers] = useState<ARCustomer[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -24,11 +49,21 @@ export default function AccountReportPanel() {
             Every customer whose account starts with a letter A through V, collated one row per customer.
           </p>
         </div>
-        {customers.length > 0 && (
-          <span className="text-xs text-slate">
-            {customers.length} customers · ${totalBalance.toFixed(2)} total balance
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {customers.length > 0 && (
+            <span className="text-xs text-slate">
+              {customers.length} customers · ${totalBalance.toFixed(2)} total balance
+            </span>
+          )}
+          {customers.length > 0 && (
+            <button
+              onClick={() => downloadCsv(customers)}
+              className="rounded bg-moss px-3 py-1.5 text-xs font-medium text-white hover:bg-moss/90 focus:outline-none focus:ring-2 focus:ring-moss focus:ring-offset-2"
+            >
+              Export CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {loading && <p className="mt-3 text-sm text-slate">Loading...</p>}
