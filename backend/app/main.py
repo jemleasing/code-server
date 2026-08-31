@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(customers.router)
-app.include_router(leases.router)
+app.include_router(leases.router, prefix="/api")
 app.include_router(sage_sync.router)
 
 @app.get("/")
