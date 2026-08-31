@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || 'https://code.dev.n3d.fit';
 
 async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`)
