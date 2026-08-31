@@ -23,6 +23,9 @@ app.include_router(customers.router)
 # app.include_router(router)
 # app.include_router(sage_sync.router)
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Livery ERP API is running"}
 
 @app.get("/api/health")
 def health_check():

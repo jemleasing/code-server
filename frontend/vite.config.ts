@@ -4,6 +4,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ['ide.dev.n3d.fit']
+    allowedHosts: ['ide.dev.n3d.fit','code.dev.n3d.fit']
   }
 })

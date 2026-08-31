@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 async function apiGet<T>(path: string): Promise<T> {
@@ -31,12 +32,13 @@ export interface PendingPayment {
 }
 
 export interface ARCustomer {
-  'Customer ID': string
-  Customer: string
-  Balance: number
-  'Last Pay Date': string | null
-  'Last Pay Amt': number | null
-  SyncRunAt: string
+  'Customer ID': string;
+  Customer: string;
+  LeaseNumber?: string;
+  Balance: number;
+  'Last Pay Date': string | null;
+  'Last Pay Amt': number | null;
+  SyncRunAt: string;
 }
 
 export interface Customer {
@@ -47,6 +49,7 @@ export interface Customer {
   VIN: string;
   AmountDue: number;
   LastPayDate: string | null;
+  Active?: number | boolean;
   CustCell: string | null;
   TagNum: string | null;
   TLC_DiamondNum: string | null;
