@@ -55,39 +55,46 @@ def health_check():
 
 from app.database import db_cursor
 
-@app.get("/api/leases/ar-summary")
-def get_lease_ar_summary():
+
+def _fetch_account_summary(limit: int | None = None):
+    """
+    Shared query behind both the AR summary panel (top 10 by balance) and
+    the full account report: one row per customer, with all of that
+    customer's leases (LeaseID starting with a letter A-V) collated
+    together - lease numbers combined, balances and collateral values
+    summed.
+    """
+    query = """
+        SELECT
+            l.CustomerID,
+            l.Customer,
+            GROUP_CONCAT(DISTINCT l.`Lease#` ORDER BY l.`Lease#` SEPARATOR ', ') AS LeaseNumbers,
+            SUM(l.AmountDue) AS Balance,
+            MAX(l.LastPayDate) AS LastPayDate,
+            SUM(cv.CollatV) AS TotalCollatV
+        FROM tbllease l
+        LEFT JOIN (
+            -- Pre-aggregate per lease first, so a lease with more than
+            -- one tblcollatv row can't fan out the join and inflate
+            -- the AmountDue sum above.
+            SELECT LeaseID, SUM(CollatV) AS CollatV
+            FROM tblcollatv
+            GROUP BY LeaseID
+        ) cv ON cv.LeaseID = l.LeaseID
+        WHERE UPPER(SUBSTRING(l.LeaseID, 1, 1)) BETWEEN 'A' AND 'V'
+        GROUP BY l.CustomerID, l.Customer
+        ORDER BY Balance DESC
+    """
+    params = ()
+    if limit is not None:
+        query += " LIMIT %s"
+        params = (limit,)
+
     with db_cursor() as cursor:
-        # Collate all of a customer's leases into a single row: sum their
-        # balances and collateral values together and combine their lease
-        # numbers into one list, instead of showing one row per lease.
-        cursor.execute(
-            """
-            SELECT
-                l.CustomerID,
-                l.Customer,
-                GROUP_CONCAT(DISTINCT l.`Lease#` ORDER BY l.`Lease#` SEPARATOR ', ') AS LeaseNumbers,
-                SUM(l.AmountDue) AS Balance,
-                MAX(l.LastPayDate) AS LastPayDate,
-                SUM(cv.CollatV) AS TotalCollatV
-            FROM tbllease l
-            LEFT JOIN (
-                -- Pre-aggregate per lease first, so a lease with more than
-                -- one tblcollatv row can't fan out the join and inflate
-                -- the AmountDue sum above.
-                SELECT LeaseID, SUM(CollatV) AS CollatV
-                FROM tblcollatv
-                GROUP BY LeaseID
-            ) cv ON cv.LeaseID = l.LeaseID
-            WHERE l.LeaseID BETWEEN 'A' AND 'V'
-            GROUP BY l.CustomerID, l.Customer
-            ORDER BY Balance DESC
-            LIMIT 10
-            """
-        )
+        cursor.execute(query, params)
         rows = cursor.fetchall()
 
-    result = [
+    return [
         {
             "LeaseNumber": row.get("LeaseNumbers"),
             "Customer ID": row.get("CustomerID"),
@@ -100,4 +107,18 @@ def get_lease_ar_summary():
         }
         for row in rows
     ]
-    return {"customers": result}
+
+
+@app.get("/api/leases/ar-summary")
+def get_lease_ar_summary():
+    """Top 10 highest AR balances, for the dashboard panel."""
+    return {"customers": _fetch_account_summary(limit=10)}
+
+
+@app.get("/api/leases/account-report")
+def get_account_report():
+    """
+    Full report: every customer with a lease account starting with a
+    letter A through V (no limit), for the account report page.
+    """
+    return {"customers": _fetch_account_summary(limit=None)}

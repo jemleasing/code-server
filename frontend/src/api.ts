@@ -62,4 +62,5 @@ export const api = {
   customers: (search: string) =>
     apiGet<{ customers: Customer[] }>(`/api/customers?search=${encodeURIComponent(search)}`),
   arSummary: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/ar-summary'),
+  accountReport: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/account-report'),
 }

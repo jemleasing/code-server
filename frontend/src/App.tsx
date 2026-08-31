@@ -1,5 +1,6 @@
 import ARSummaryPanel from './components/ARSummaryPanel'
 import CustomerSearchPanel from './components/CustomerSearchPanel'
+import AccountReportPanel from './components/AccountReportPanel'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <div className="grid gap-6 lg:grid-cols-2">
           <ARSummaryPanel />
           <CustomerSearchPanel />
+          <AccountReportPanel />
         </div>
       </main>
     </div>
