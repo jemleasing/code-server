@@ -18,12 +18,12 @@ app.add_middleware(
 )
 
 # 3. Import and include your routers after app is initialized
-from app.routers import customers, sage_sync
+from app.routers import customers, sage_sync, leases
 
 app.include_router(customers.router)
 app.include_router(sage_sync.router)
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173","https://code-server-tau.vercel.app/").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://code-server-tau.vercel.app/").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -33,8 +33,8 @@ app.add_middleware(
 )
 
 app.include_router(customers.router)
-# app.include_router(router)
-# app.include_router(sage_sync.router)
+app.include_router(leases.router)
+app.include_router(sage_sync.router)
 
 @app.get("/")
 def read_root():
