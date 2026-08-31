@@ -40,6 +40,7 @@ export interface ARCustomer {
   'Last Pay Date': string | null;
   'Last Pay Amt': number | null;
   CollatV: number | null;
+  Vehicle?: string;
   SyncRunAt: string;
 }
 

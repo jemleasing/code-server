@@ -27,6 +27,7 @@ export default function ARSummaryPanel() {
     <tr className="text-left text-xs uppercase tracking-wide text-slate border-b border-slate/10">
       <th className="pb-2 font-medium">Lease #(s)</th> {/* Collated per customer */}
       <th className="pb-2 font-medium">Customer</th>
+      <th className="pb-2 font-medium">Vehicle</th>
       <th className="pb-2 font-medium text-right">Balance</th>
       <th className="pb-2 font-medium text-right">Collat V</th>
       <th className="pb-2 font-medium text-right">Last payment</th>
@@ -37,6 +38,7 @@ export default function ARSummaryPanel() {
       <tr key={c['Customer ID']}>
         <td className="py-2 font-mono text-xs">{c.LeaseNumber || '—'}</td> {/* Comma-separated list of this customer's leases */}
         <td className="py-2">{c.Customer}</td>
+        <td className="py-2 text-xs text-slate">{c.Vehicle || '—'}</td>
         <td className="py-2 text-right font-mono">${Number(c.Balance).toFixed(2)}</td>
         <td className="py-2 text-right font-mono">
           {c.CollatV != null ? `$${Number(c.CollatV).toFixed(2)}` : '—'}

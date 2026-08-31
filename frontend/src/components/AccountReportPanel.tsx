@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, ARCustomer } from '../api'
 
 function downloadCsv(customers: ARCustomer[]) {
-  const headers = ['Customer ID', 'Customer', 'Lease #(s)', 'Balance', 'Collat V', 'Last Pay Date']
+  const headers = ['Customer ID', 'Customer', 'Lease #(s)', 'Vehicle', 'Balance', 'Collat V', 'Last Pay Date']
   const escape = (val: unknown) => {
     const s = val == null ? '' : String(val)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
@@ -11,6 +11,7 @@ function downloadCsv(customers: ARCustomer[]) {
     c['Customer ID'],
     c.Customer,
     c.LeaseNumber || '',
+    c.Vehicle || '',
     Number(c.Balance).toFixed(2),
     c.CollatV != null ? Number(c.CollatV).toFixed(2) : '',
     c['Last Pay Date'] ? new Date(c['Last Pay Date']).toLocaleDateString() : '',
@@ -76,6 +77,7 @@ export default function AccountReportPanel() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate border-b border-slate/10">
                 <th className="pb-2 font-medium">Lease #(s)</th>
                 <th className="pb-2 font-medium">Customer</th>
+                <th className="pb-2 font-medium">Vehicle</th>
                 <th className="pb-2 font-medium text-right">Balance</th>
                 <th className="pb-2 font-medium text-right">Collat V</th>
                 <th className="pb-2 font-medium text-right">Last payment</th>
@@ -86,6 +88,7 @@ export default function AccountReportPanel() {
                 <tr key={c['Customer ID']}>
                   <td className="py-2 font-mono text-xs">{c.LeaseNumber || '—'}</td>
                   <td className="py-2">{c.Customer}</td>
+                  <td className="py-2 text-xs text-slate">{c.Vehicle || '—'}</td>
                   <td className="py-2 text-right font-mono">${Number(c.Balance).toFixed(2)}</td>
                   <td className="py-2 text-right font-mono">
                     {c.CollatV != null ? `$${Number(c.CollatV).toFixed(2)}` : '—'}

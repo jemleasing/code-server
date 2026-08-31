@@ -61,14 +61,15 @@ def _fetch_account_summary(limit: int | None = None):
     Shared query behind both the AR summary panel (top 10 by balance) and
     the full account report: one row per customer, with all of that
     customer's leases (LeaseID starting with a letter A-V) collated
-    together - lease numbers combined, balances and collateral values
-    summed.
+    together - lease numbers, vehicle make/model, balances and
+    collateral values all combined.
     """
     query = """
         SELECT
             l.CustomerID,
             l.Customer,
             GROUP_CONCAT(DISTINCT l.`Lease#` ORDER BY l.`Lease#` SEPARATOR ', ') AS LeaseNumbers,
+            GROUP_CONCAT(DISTINCT CONCAT(car.Make, ' ', car.Model) ORDER BY car.Make SEPARATOR ', ') AS Vehicles,
             SUM(l.AmountDue) AS Balance,
             MAX(l.LastPayDate) AS LastPayDate,
             SUM(cv.CollatV) AS TotalCollatV
@@ -81,6 +82,7 @@ def _fetch_account_summary(limit: int | None = None):
             FROM tblcollatv
             GROUP BY LeaseID
         ) cv ON cv.LeaseID = l.LeaseID
+        LEFT JOIN tbl_b_car car ON car.Vin = l.VIN
         WHERE UPPER(SUBSTRING(l.LeaseID, 1, 1)) BETWEEN 'A' AND 'V'
         GROUP BY l.CustomerID, l.Customer
         ORDER BY Balance DESC
@@ -103,6 +105,7 @@ def _fetch_account_summary(limit: int | None = None):
             "Last Pay Date": str(row.get("LastPayDate")) if row.get("LastPayDate") else None,
             "Last Pay Amt": None,
             "CollatV": row.get("TotalCollatV"),
+            "Vehicle": row.get("Vehicles"),
             "SyncRunAt": "Live"
         }
         for row in rows
