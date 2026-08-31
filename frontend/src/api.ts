@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-const API_URL = import.meta.env.VITE_API_URL || 'https://code.dev.n3d.fit';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://code.dev.n3d.fit';
 

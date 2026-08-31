@@ -23,7 +23,7 @@ from app.routers import customers, sage_sync
 app.include_router(customers.router)
 app.include_router(sage_sync.router)
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173","https://code-server-tau.vercel.app/").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
