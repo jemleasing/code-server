@@ -40,7 +40,7 @@ app.include_router(sage_sync.router)
 def read_root():
     return {"status": "online", "message": "Livery ERP API is running"}
 
-@app.get("/api/health/")
+@app.get("/api/health")
 def health_check():
     """Quick check that the API is up and can reach MySQL."""
     from app.database import db_cursor
@@ -55,7 +55,7 @@ def health_check():
 
 from app.database import db_cursor
 
-@app.get("/api/leases/ar-summary/")
+@app.get("/api/leases/ar-summary")
 def get_lease_ar_summary():
     with db_cursor() as cursor:
         # Let's test grabbing just one row with a wildcard
