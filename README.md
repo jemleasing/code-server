@@ -1,2 +1,2 @@
 # code-server
-Code bas for updated UI
+Code base for updated UI
