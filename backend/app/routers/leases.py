@@ -40,7 +40,7 @@ def get_active_collateral_value(db: Session = Depends(get_db)) -> List[Dict[str,
         JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
         WHERE l.Active = -1
         ORDER BY cv.CollatV DESC
-        LIMIT 100
+        LIMIT 10
     """)
     
     result = db.execute(query).mappings().fetchall()
@@ -65,7 +65,7 @@ def get_account_report(lease_num: str = None, db: Session = Depends(get_db)) -> 
             WHERE Void = 0
             GROUP BY `Lease#`
             ORDER BY last_payment_date DESC
-            LIMIT 100
+            LIMIT 10
         """)
         result = db.execute(query).mappings().fetchall()
         return {"summary": [dict(row) for row in result]}
@@ -81,7 +81,7 @@ def get_account_report(lease_num: str = None, db: Session = Depends(get_db)) -> 
         SELECT PaymentID, Amount, DateTime, PaymentType, BalanceAfterPayment 
         FROM dbo_payments 
         WHERE AccountID = :lease_num AND Void = 0
-        ORDER BY DateTime DESC LIMIT 50
+        ORDER BY DateTime DESC LIMIT 10
     """)
     payments_data = db.execute(payments_query, {"lease_num": lease_num}).mappings().fetchall()
 
