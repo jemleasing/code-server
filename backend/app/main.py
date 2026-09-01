@@ -170,3 +170,106 @@ def get_active_collatv():
             for row in rows
         ]
     }
+
+
+@app.get("/api/leases/active-full-report")
+def get_active_full_report():
+    """
+    One row per active account (Active = 1): balance, CollatV pulled from
+    every source table that has one, and vehicle year/make/model/cost/
+    current value.
+
+    tblscorecard and tbl_productsearcheditquery are both history/import
+    logs with no unique key on Lease#/LeaseID (multiple rows can exist
+    per lease over time), so each is narrowed down to its latest row per
+    lease via a MAX(ID) subquery before joining - otherwise the join
+    would fan out and duplicate/inflate every other column in the row.
+    Same idea for tblcarcurrentvalue, keyed by latest DateInspected/ID
+    per VIN.
+    """
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                l.LeaseID,
+                l.`Lease#` AS LeaseNumber,
+                l.CustomerID,
+                l.Customer,
+                l.AmountDue AS Balance,
+
+                cv.CollatV AS CollatV_TblCollatv,
+                sc.CollatV AS CollatV_Scorecard,
+                psq.collatV1 AS CollatV_ProductSearch,
+
+                car.Year,
+                car.Make,
+                car.Model,
+                car.PurchasePrice AS Cost,
+                COALESCE(ccv.ADJEstMMR, ccv.MMR) AS CurrentValue
+
+            FROM tbllease l
+
+            LEFT JOIN (
+                SELECT LeaseID, SUM(CollatV) AS CollatV
+                FROM tblcollatv
+                GROUP BY LeaseID
+            ) cv ON cv.LeaseID = l.LeaseID
+
+            LEFT JOIN (
+                SELECT sc1.`Lease#`, sc1.CollatV
+                FROM tblscorecard sc1
+                INNER JOIN (
+                    SELECT `Lease#`, MAX(ID) AS MaxID
+                    FROM tblscorecard
+                    GROUP BY `Lease#`
+                ) latest ON latest.`Lease#` = sc1.`Lease#` AND latest.MaxID = sc1.ID
+            ) sc ON sc.`Lease#` = l.`Lease#`
+
+            LEFT JOIN (
+                SELECT q1.LeaseID, q1.collatV1
+                FROM tbl_productsearcheditquery q1
+                INNER JOIN (
+                    SELECT LeaseID, MAX(ID) AS MaxID
+                    FROM tbl_productsearcheditquery
+                    GROUP BY LeaseID
+                ) latest ON latest.LeaseID = q1.LeaseID AND latest.MaxID = q1.ID
+            ) psq ON psq.LeaseID = l.LeaseID
+
+            LEFT JOIN tbl_b_car car ON car.Vin = l.VIN
+
+            LEFT JOIN (
+                SELECT ccv1.Vin, ccv1.MMR, ccv1.ADJEstMMR
+                FROM tblcarcurrentvalue ccv1
+                INNER JOIN (
+                    SELECT Vin, MAX(ID) AS MaxID
+                    FROM tblcarcurrentvalue
+                    GROUP BY Vin
+                ) latest ON latest.Vin = ccv1.Vin AND latest.MaxID = ccv1.ID
+            ) ccv ON ccv.Vin = l.VIN
+
+            WHERE l.Active = 1
+            ORDER BY l.`Lease#`
+            """
+        )
+        rows = cursor.fetchall()
+
+    return {
+        "accounts": [
+            {
+                "LeaseID": row.get("LeaseID"),
+                "LeaseNumber": row.get("LeaseNumber"),
+                "Customer ID": row.get("CustomerID"),
+                "Customer": row.get("Customer"),
+                "Balance": row.get("Balance"),
+                "CollatV_TblCollatv": row.get("CollatV_TblCollatv"),
+                "CollatV_Scorecard": row.get("CollatV_Scorecard"),
+                "CollatV_ProductSearch": row.get("CollatV_ProductSearch"),
+                "Year": row.get("Year"),
+                "Make": row.get("Make"),
+                "Model": row.get("Model"),
+                "Cost": row.get("Cost"),
+                "CurrentValue": row.get("CurrentValue"),
+            }
+            for row in rows
+        ]
+    }
