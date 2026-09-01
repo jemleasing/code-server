@@ -13,10 +13,6 @@ def get_ar_summary():
 
 @router.get("/active-full-report")
 def get_active_full_report(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    """
-    Returns a master list of all active leases, joining vehicle and customer data.
-    Uses Active = -1 to account for legacy MS Access boolean formatting.
-    """
     query = text("""
         SELECT 
             l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, l.Coll_Status,
@@ -27,6 +23,7 @@ def get_active_full_report(db: Session = Depends(get_db)) -> List[Dict[str, Any]
         LEFT JOIN tbl_b_customer cust ON l.`Lease#` = cust.`Lease#`
         WHERE l.Active = -1
         ORDER BY l.AmountDue DESC
+        LIMIT 100
     """)
     
     result = db.execute(query).mappings().fetchall()
@@ -35,9 +32,6 @@ def get_active_full_report(db: Session = Depends(get_db)) -> List[Dict[str, Any]
 
 @router.get("/active-collatv")
 def get_active_collateral_value(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    """
-    Returns fleet exposure by linking active leases to their collateral values.
-    """
     query = text("""
         SELECT 
             l.`Lease#`, l.Customer, l.VIN,
@@ -46,6 +40,7 @@ def get_active_collateral_value(db: Session = Depends(get_db)) -> List[Dict[str,
         JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
         WHERE l.Active = -1
         ORDER BY cv.CollatV DESC
+        LIMIT 100
     """)
     
     result = db.execute(query).mappings().fetchall()
