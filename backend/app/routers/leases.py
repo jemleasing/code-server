@@ -29,14 +29,7 @@ def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[s
 def get_active_collateral_value(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
     # Changed JOIN to LEFT JOIN to prevent missing collateral data from hiding active leases
     query = text("""
-        SELECT 
-            l.`Lease#`, l.Customer, l.VIN,
-            cv.CollatV, cv.CreditLimit, cv.InsuranceDP, cv.WeeksRemaining
-        FROM tbllease l
-        LEFT JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
-        WHERE l.Active != 0
-        ORDER BY cv.CollatV DESC
-        LIMIT 100
+        SELECT * FROM tbllease LIMIT 5
     """)
     
     result = db.execute(query).mappings().fetchall()
