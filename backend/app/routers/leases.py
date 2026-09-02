@@ -13,16 +13,16 @@ def get_ar_summary():
 
 @router.get("/active-full-report")
 def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
-    # Changed Active = -1 to Active != 0 to catch all variations of "True"
     query = text("""
         SELECT 
             l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, l.Coll_Status,
+            l.Active, -- Added this so we can inspect the actual value
             c.Make, c.Model, c.Year, c.LicensePlate,
             cust.EstMilesPerWeek, cust.BaseName
         FROM tbllease l
         LEFT JOIN tbl_b_car c ON l.VIN = c.Vin
         LEFT JOIN tbl_b_customer cust ON l.`Lease#` = cust.`Lease#`
-        WHERE l.Active != 0
+        -- WHERE l.Active != 0  <-- Commented out to let everything through
         ORDER BY l.AmountDue DESC
         LIMIT 100
     """)
