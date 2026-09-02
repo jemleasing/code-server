@@ -17,12 +17,12 @@ export default function App() {
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="grid gap-6 lg:grid-cols-2">
+          <EzpassViolationsPanel />
           <ARSummaryPanel />
           <CustomerSearchPanel />
           <AccountReportPanel />
           <ActiveCollatVPanel />
           <ActiveFullReportPanel />
-          <EzpassViolationsPanel />
         </div>
       </main>
     </div>

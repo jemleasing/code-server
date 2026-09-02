@@ -4,15 +4,9 @@ load_dotenv()  # Load environment variables first
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import customers, sage_sync, leases # Assuming these are your routers
 
-app = FastAPI(title="JEM Leasing ERP API")
-
-origins = [
-    "https://code-server-tau.vercel.app", # Your deployed Vercel frontend
-    "http://localhost:3000",              # Standard React local development port
-    "http://localhost:5173",              # Standard Vite/React local development port
-]
+# 1. Initialize the app FIRST
+app = FastAPI(title="JEM Leasing ERP API", version="0.1.0")
 
 # 2. Add CORS middleware to the app instance
 app.add_middleware(
@@ -42,8 +36,9 @@ app.include_router(customers.router)
 app.include_router(leases.router, prefix="/api")
 app.include_router(sage_sync.router)
 
-def root():
-    return {"message": "API is running"}
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Livery ERP API is running"}
 
 @app.get("/api/health")
 def health_check():
@@ -223,7 +218,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT sc1.`Lease#`, sc1.CollatV
                 FROM tblscorecard sc1
-                LEFT JOIN (
+                INNER JOIN (
                     SELECT `Lease#`, MAX(ID) AS MaxID
                     FROM tblscorecard
                     GROUP BY `Lease#`
@@ -233,7 +228,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT q1.LeaseID, q1.collatV1
                 FROM tbl_productsearcheditquery q1
-                LEFT JOIN (
+                INNER JOIN (
                     SELECT LeaseID, MAX(ID) AS MaxID
                     FROM tbl_productsearcheditquery
                     GROUP BY LeaseID
@@ -245,7 +240,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT ccv1.Vin, ccv1.MMR, ccv1.ADJEstMMR
                 FROM tblcarcurrentvalue ccv1
-                LEFT JOIN (
+                INNER JOIN (
                     SELECT Vin, MAX(ID) AS MaxID
                     FROM tblcarcurrentvalue
                     GROUP BY Vin
