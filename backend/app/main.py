@@ -223,7 +223,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT sc1.`Lease#`, sc1.CollatV
                 FROM tblscorecard sc1
-                INNER JOIN (
+                LEFT JOIN (
                     SELECT `Lease#`, MAX(ID) AS MaxID
                     FROM tblscorecard
                     GROUP BY `Lease#`
@@ -233,7 +233,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT q1.LeaseID, q1.collatV1
                 FROM tbl_productsearcheditquery q1
-                INNER JOIN (
+                LEFT JOIN (
                     SELECT LeaseID, MAX(ID) AS MaxID
                     FROM tbl_productsearcheditquery
                     GROUP BY LeaseID
@@ -245,7 +245,7 @@ def get_active_full_report():
             LEFT JOIN (
                 SELECT ccv1.Vin, ccv1.MMR, ccv1.ADJEstMMR
                 FROM tblcarcurrentvalue ccv1
-                INNER JOIN (
+                LEFT JOIN (
                     SELECT Vin, MAX(ID) AS MaxID
                     FROM tblcarcurrentvalue
                     GROUP BY Vin
