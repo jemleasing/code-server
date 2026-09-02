@@ -13,6 +13,7 @@ def get_ar_summary():
 
 @router.get("/active-full-report")
 def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
+    # Changed Active = -1 to Active != 0 to catch all variations of "True"
     query = text("""
         SELECT 
             l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, l.Coll_Status,
@@ -23,6 +24,7 @@ def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[s
         LEFT JOIN tbl_b_customer cust ON l.`Lease#` = cust.`Lease#`
         WHERE l.Active != 0
         ORDER BY l.AmountDue DESC
+        LIMIT 100
     """)
     
     result = db.execute(query).mappings().fetchall()
@@ -31,19 +33,20 @@ def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[s
 
 @router.get("/active-collatv")
 def get_active_collateral_value(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
-    """
-    Returns fleet exposure by linking active leases to their collateral values.
-    """
+    # Changed JOIN to LEFT JOIN to prevent missing collateral data from hiding active leases
     query = text("""
         SELECT 
             l.`Lease#`, l.Customer, l.VIN,
             cv.CollatV, cv.CreditLimit, cv.InsuranceDP, cv.WeeksRemaining
         FROM tbllease l
-        JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
+        LEFT JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
         WHERE l.Active != 0
         ORDER BY cv.CollatV DESC
-        LIMIT 10
+        LIMIT 100
     """)
+    
+    result = db.execute(query).mappings().fetchall()
+    return [dict(row) for row in result]
     
     result = db.execute(query).mappings().fetchall()
     return [dict(row) for row in result]
