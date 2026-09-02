@@ -39,6 +39,8 @@ export interface ARCustomer {
   Balance: number;
   'Last Pay Date': string | null;
   'Last Pay Amt': number | null;
+  CollatV: number | null;
+  Vehicle?: string;
   SyncRunAt: string;
 }
 
@@ -56,9 +58,37 @@ export interface Customer {
   TLC_DiamondNum: string | null;
 }
 
+export interface ActiveAccount {
+  LeaseID: string;
+  LeaseNumber: string;
+  'Customer ID': string;
+  Customer: string;
+  Balance: number;
+  CollatV: number | null;
+}
+
+export interface ActiveFullReportRow {
+  LeaseID: string;
+  LeaseNumber: string;
+  'Customer ID': string;
+  Customer: string;
+  Balance: number;
+  CollatV_TblCollatv: number | null;
+  CollatV_Scorecard: number | null;
+  CollatV_ProductSearch: number | null;
+  Year: number | null;
+  Make: string | null;
+  Model: string | null;
+  Cost: number | null;
+  CurrentValue: number | null;
+}
+
 export const api = {
   health: () => apiGet<{ api: string; database: string }>('/api/health'),
   customers: (search: string) =>
     apiGet<{ customers: Customer[] }>(`/api/customers?search=${encodeURIComponent(search)}`),
   arSummary: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/ar-summary'),
+  accountReport: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/account-report'),
+  activeCollatV: () => apiGet<{ accounts: ActiveAccount[] }>('/api/leases/active-collatv'),
+  activeFullReport: () => apiGet<{ accounts: ActiveFullReportRow[] }>('/api/leases/active-full-report'),
 }
