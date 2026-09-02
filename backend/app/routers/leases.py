@@ -16,7 +16,7 @@ def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[s
     query = text("""
         SELECT 
             l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, cust.CollStatus,
-            l.Active, -- Added this so we can inspect the actual value
+            -- l.Active, -- Added this so we can inspect the actual value
             c.Make, c.Model, c.Year
             cust.EstimatedWeeklyMilesCarWillBeDriven, cust.BaseName
         FROM tbllease l
