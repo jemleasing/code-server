@@ -51,23 +51,23 @@ def get_ar_summary():
     return []
 
 @router.get("/active-full-report")
-def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
-    query = text("""
-        SELECT 
-            l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, cust.CollStatus,
-            -- l.Active, -- Added this so we can inspect the actual value
-            c.Make, c.Model, c.Year
-            cust.EstimatedWeeklyMilesCarWillBeDriven, cust.BaseName
-        FROM tbllease l
-        LEFT JOIN tbl_b_car c ON l.VIN = c.Vin
-        LEFT JOIN tbl_b_customer cust ON l.`Lease#` = cust.`Lease#`
-        -- WHERE l.Active != 0  <-- Commented out to let everything through
-        ORDER BY l.AmountDue DESC
-        LIMIT 100
-    """)
+def get_active_full_report(db: Session = Depends(get_connection)):
+    # 1. This proves the file is actually running
+    print("=========================================")
+    print("!!! ACTIVE FULL REPORT ENDPOINT HIT !!!")
+    print("=========================================")
     
+    # 2. No try/except block. If it fails, we WANT it to crash and show the error.
+    query = text("SELECT * FROM tbllease LIMIT 5")
     result = db.execute(query).mappings().fetchall()
-    return [dict(row) for row in result]
+    
+    data = [dict(row) for row in result]
+    
+    # 3. This proves if it actually found data
+    print(f"!!! FOUND {len(data)} ROWS !!!")
+    print("=========================================")
+    
+    return {"accounts": data}
 
 
 @router.get("/active-collatv")
