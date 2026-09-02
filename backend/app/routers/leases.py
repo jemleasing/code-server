@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import get_db # Assuming your DB dependency is here
+from app.database import get_connection # Assuming your DB dependency is here
 
 router = APIRouter(prefix="/api/leases", tags=["leases"])
 
@@ -12,7 +12,7 @@ def get_ar_summary():
     return []
 
 @router.get("/active-full-report")
-def get_active_full_report(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
     query = text("""
         SELECT 
             l.ID, l.`Lease#`, l.Customer, l.Phone, l.AmountDue, l.LastPayDate, l.Coll_Status,
@@ -30,7 +30,7 @@ def get_active_full_report(db: Session = Depends(get_db)) -> List[Dict[str, Any]
 
 
 @router.get("/active-collatv")
-def get_active_collateral_value(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+def get_active_collateral_value(db: Session = Depends(get_connection)) -> List[Dict[str, Any]]:
     """
     Returns fleet exposure by linking active leases to their collateral values.
     """
@@ -50,7 +50,7 @@ def get_active_collateral_value(db: Session = Depends(get_db)) -> List[Dict[str,
 
 
 @router.get("/account-report")
-def get_account_report(lease_num: str = None, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_account_report(lease_num: str = None, db: Session = Depends(get_connection)) -> Dict[str, Any]:
     """
     Returns a deep-dive on a specific account, including payment history and status flags.
     If no lease_num is provided, it can return a high-level summary of all accounts.
