@@ -273,3 +273,78 @@ def get_active_full_report():
             for row in rows
         ]
     }
+
+
+@app.get("/api/leases/ezpass-violations")
+def get_ezpass_violations():
+    """
+    Every customer with at least one EZPass toll violation in the last
+    180 days: ticket count, account balance, CollatV, and current car
+    value, collated one row per customer.
+
+    NOTE on the EZPass filter: tbl_b_tickets holds all ticket types
+    (parking, camera, tolls), not just EZPass. There's no live data
+    available to confirm the exact Agency/Authority string used for
+    EZPass records, so this filters on TollBill# being populated
+    (a toll-specific field) OR Agency/Authority mentioning "EZ" as a
+    reasonable default. Run the diagnostic query in
+    sql/diagnose_ezpass_filter.sql against real data and adjust the
+    WHERE clause below if it doesn't match what you expect.
+    """
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                l.CustomerID,
+                l.Customer,
+                GROUP_CONCAT(DISTINCT l.`Lease#` ORDER BY l.`Lease#` SEPARATOR ', ') AS LeaseNumbers,
+                SUM(l.AmountDue) AS Balance,
+                SUM(cv.CollatV) AS TotalCollatV,
+                SUM(ccv.CurrentValue) AS TotalCurrentValue,
+                SUM(tix.TicketCount) AS TicketCount
+            FROM tbllease l
+            INNER JOIN (
+                SELECT `Lease#`, COUNT(*) AS TicketCount
+                FROM tbl_b_tickets
+                WHERE DateTimeOfViolation >= NOW() - INTERVAL 180 DAY
+                  AND (
+                      (`TollBill#` IS NOT NULL AND `TollBill#` != '')
+                      OR Agency LIKE '%EZ%'
+                      OR Authority LIKE '%EZ%PASS%'
+                  )
+                GROUP BY `Lease#`
+            ) tix ON tix.`Lease#` = l.`Lease#`
+            LEFT JOIN (
+                SELECT LeaseID, SUM(CollatV) AS CollatV
+                FROM tblcollatv
+                GROUP BY LeaseID
+            ) cv ON cv.LeaseID = l.LeaseID
+            LEFT JOIN (
+                SELECT ccv1.Vin, COALESCE(ccv1.ADJEstMMR, ccv1.MMR) AS CurrentValue
+                FROM tblcarcurrentvalue ccv1
+                INNER JOIN (
+                    SELECT Vin, MAX(ID) AS MaxID
+                    FROM tblcarcurrentvalue
+                    GROUP BY Vin
+                ) latest ON latest.Vin = ccv1.Vin AND latest.MaxID = ccv1.ID
+            ) ccv ON ccv.Vin = l.VIN
+            GROUP BY l.CustomerID, l.Customer
+            ORDER BY TicketCount DESC
+            """
+        )
+        rows = cursor.fetchall()
+
+    return {
+        "customers": [
+            {
+                "Customer ID": row.get("CustomerID"),
+                "Customer": row.get("Customer"),
+                "LeaseNumber": row.get("LeaseNumbers"),
+                "TicketCount": row.get("TicketCount"),
+                "Balance": row.get("Balance"),
+                "CollatV": row.get("TotalCollatV"),
+                "CurrentValue": row.get("TotalCurrentValue"),
+            }
+            for row in rows
+        ]
+    }

@@ -3,6 +3,7 @@ import CustomerSearchPanel from './components/CustomerSearchPanel'
 import AccountReportPanel from './components/AccountReportPanel'
 import ActiveCollatVPanel from './components/ActiveCollatVPanel'
 import ActiveFullReportPanel from './components/ActiveFullReportPanel'
+import EzpassViolationsPanel from './components/EzpassViolationsPanel'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <AccountReportPanel />
           <ActiveCollatVPanel />
           <ActiveFullReportPanel />
+          <EzpassViolationsPanel />
         </div>
       </main>
     </div>

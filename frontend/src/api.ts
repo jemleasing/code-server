@@ -83,6 +83,16 @@ export interface ActiveFullReportRow {
   CurrentValue: number | null;
 }
 
+export interface EzpassViolationRow {
+  'Customer ID': string;
+  Customer: string;
+  LeaseNumber?: string;
+  TicketCount: number;
+  Balance: number;
+  CollatV: number | null;
+  CurrentValue: number | null;
+}
+
 export const api = {
   health: () => apiGet<{ api: string; database: string }>('/api/health'),
   customers: (search: string) =>
@@ -91,4 +101,5 @@ export const api = {
   accountReport: () => apiGet<{ customers: ARCustomer[] }>('/api/leases/account-report'),
   activeCollatV: () => apiGet<{ accounts: ActiveAccount[] }>('/api/leases/active-collatv'),
   activeFullReport: () => apiGet<{ accounts: ActiveFullReportRow[] }>('/api/leases/active-full-report'),
+  ezpassViolations: () => apiGet<{ customers: EzpassViolationRow[] }>('/api/leases/ezpass-violations'),
 }
