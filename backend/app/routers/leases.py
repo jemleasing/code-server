@@ -21,7 +21,7 @@ def get_active_full_report(db: Session = Depends(get_connection)) -> List[Dict[s
         FROM tbllease l
         LEFT JOIN tbl_b_car c ON l.VIN = c.Vin
         LEFT JOIN tbl_b_customer cust ON l.`Lease#` = cust.`Lease#`
-        WHERE l.Active = -1
+        WHERE l.Active != 0
         ORDER BY l.AmountDue DESC
     """)
     
@@ -40,7 +40,7 @@ def get_active_collateral_value(db: Session = Depends(get_connection)) -> List[D
             cv.CollatV, cv.CreditLimit, cv.InsuranceDP, cv.WeeksRemaining
         FROM tbllease l
         JOIN tblcollatv cv ON l.`Lease#` = cv.`Lease#`
-        WHERE l.Active = -1
+        WHERE l.Active != 0
         ORDER BY cv.CollatV DESC
         LIMIT 10
     """)
