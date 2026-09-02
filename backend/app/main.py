@@ -12,6 +12,7 @@ origins = [
     "https://code-server-tau.vercel.app", # Your deployed Vercel frontend
     "http://localhost:3000",              # Standard React local development port
     "http://localhost:5173",              # Standard Vite/React local development port
+]
 
 # 2. Add CORS middleware to the app instance
 app.add_middleware(
